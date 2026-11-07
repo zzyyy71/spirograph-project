@@ -1,0 +1,813 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>萬花尺設計精靈</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #2b3a4a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: white;
+}
+
+.phone-container {
+    width: 390px;
+    height: 844px;
+    max-width: 100%;
+    background: linear-gradient(135deg, #4a6572 0%, #34495e 100%);
+    border-radius: 40px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 20px 30px;
+}
+
+.screen {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+}
+
+.screen.active {
+    display: flex;
+}
+
+h2 {
+    font-size: 22px;
+    text-align: center;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+
+.progress-container {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.progress-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #b0c4de;
+    margin-bottom: 6px;
+}
+
+.progress-segments {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+
+.segment {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+}
+
+.segment.active-seg {
+    background: #76ff03;
+}
+
+/* 確認按鈕 */
+.btn {
+    background-color: #f4d06f;
+    color: #2b3a4a;
+    border: none;
+    padding: 12px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.btn:active,
+.btn-back:active {
+    transform: scale(0.95);
+}
+
+/* 返回與確認按鈕 */
+.btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.btn-back {
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+}
+
+.btn-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #f4d06f;
+    color: #f4d06f;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-outline.selected {
+    background: #f4d06f;
+    color: #2b3a4a;
+}
+
+/* 首頁 */
+.home-center {
+    text-align: center;
+    margin: auto;
+}
+
+.home-center h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.start-gear {
+    font-size: 60px;
+    margin-top: 30px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+/* 花瓣數輸入 */
+.input-wrapper {
+    text-align: center;
+    margin: auto;
+}
+
+.petal-input-line {
+    background: transparent;
+    border: none;
+    border-bottom: 4px solid #f4d06f;
+    color: white;
+    font-size: 36px;
+    text-align: center;
+    width: 150px;
+    outline: none;
+    margin-top: 20px;
+}
+
+.error-msg {
+    color: #ff6b6b;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+}
+
+/* 尖端圓弧程度滑桿 */
+.slider-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.shape-description {
+    display: flex;
+    justify-content: space-between;
+    width: 85%;
+    margin: 12px auto 8px;
+    color: #b0c4de;
+    font-size: 13px;
+}
+
+input[type=range] {
+    width: 85%;
+    accent-color: #f4d06f;
+    height: 8px;
+    cursor: pointer;
+}
+
+.shape-value {
+    color: #f4d06f;
+    font-size: 15px;
+    margin-top: 12px;
+}
+
+/* 預覽區 */
+.preview-box {
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border: 2px solid rgba(244,208,111,0.4);
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* 最終呈現 */
+.final-box {
+    width: 100%;
+    height: 320px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border: 2px solid #f4d06f;
+}
+
+.final-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.final-actions .btn {
+    font-size: 14px;
+    padding: 10px 12px;
+}
+
+.final-actions .btn-back {
+    padding: 10px 15px;
+}
+
+@media (max-height: 700px) {
+    .phone-container {
+        height: 100vh;
+        border-radius: 20px;
+        padding-top: 20px;
+    }
+
+    .final-box {
+        height: 240px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="phone-container">
+
+    <!-- Step 0：首頁 -->
+    <div id="screen-0" class="screen active">
+
+        <div></div>
+
+        <div class="home-center">
+            <h1>萬花尺設計</h1>
+            <p style="color:#b0c4de;">
+                做自己獨一無二的萬花尺
+            </p>
+
+            <div class="start-gear" onclick="nextScreen(1)">
+                ⚙️ START
+            </div>
+        </div>
+
+        <div>
+            <div class="progress-container">
+                <div class="progress-label-row">
+                    <span>進度</span><span>0%</span>
+                </div>
+                <div class="progress-segments">
+                    <div class="segment"></div>
+                    <div class="segment"></div>
+                    <div class="segment"></div>
+                    <div class="segment"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Step 1：選擇旋輪線類型 -->
+    <div id="screen-1" class="screen">
+
+        <h2>Step 1. 請選擇內旋輪線／外旋輪線</h2>
+
+        <div style="display:flex; flex-direction:column; gap:20px; margin:auto;">
+
+            <button class="btn-outline"
+                onclick="selectType('hypo',2)">
+                內旋輪線 (Hypotrochoid)
+            </button>
+
+            <button class="btn-outline"
+                onclick="selectType('epi',2)">
+                外旋輪線 (Epitrochoid)
+            </button>
+
+        </div>
+
+        <div>
+            <div class="progress-container">
+                <div class="progress-label-row">
+                    <span>進度</span><span>25%</span>
+                </div>
+
+                <div class="progress-segments">
+                    <div class="segment active-seg"></div>
+                    <div class="segment"></div>
+                    <div class="segment"></div>
+                    <div class="segment"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Step 2：花瓣數設定 -->
+    <div id="screen-2" class="screen">
+
+        <h2>Step 2. 花瓣數設定 (1~30)</h2>
+
+        <div class="input-wrapper">
+
+            <p style="color:#b0c4de; margin-bottom:10px;">
+                請在黃線下方輸入花瓣數量：
+            </p>
+
+            <input
+                type="number"
+                id="petalInput"
+                class="petal-input-line"
+                value="6"
+                min="1"
+                max="30"
+            >
+
+            <div id="errorMsg" class="error-msg">
+                ⚠️ 請輸入 1 到 30 之間的有效數字！
+            </div>
+
+        </div>
+
+        <div class="btn-container">
+            <button class="btn-back" onclick="nextScreen(1)">
+                返回
+            </button>
+
+            <button class="btn" onclick="validateAndNext()">
+                確認
+            </button>
+        </div>
+
+        <div>
+            <div class="progress-container">
+                <div class="progress-label-row">
+                    <span>進度</span><span>50%</span>
+                </div>
+
+                <div class="progress-segments">
+                    <div class="segment active-seg"></div>
+                    <div class="segment active-seg"></div>
+                    <div class="segment"></div>
+                    <div class="segment"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Step 3：尖端圓弧程度設定 -->
+    <div id="screen-3" class="screen">
+
+        <h2>Step 3. 花瓣樣式設定</h2>
+
+        <div class="slider-container">
+
+            <p style="font-size:16px; color:#b0c4de;">
+                ① 尖端圓弧程度
+            </p>
+
+            <div class="shape-description">
+                <span>尖端</span>
+                <span>圓弧</span>
+            </div>
+
+            <input
+                type="range"
+                id="shapeSlider"
+                min="0"
+                max="100"
+                step="1"
+                value="50"
+                oninput="drawPreview()"
+            >
+
+            <div class="shape-value" id="shapeValue">
+                目前程度：50%
+            </div>
+
+        </div>
+
+        <div class="preview-box">
+            <canvas
+                id="previewCanvas"
+                width="200"
+                height="200">
+            </canvas>
+        </div>
+
+        <div class="btn-container">
+
+            <button class="btn-back" onclick="nextScreen(2)">
+                返回
+            </button>
+
+            <button class="btn" onclick="nextScreen(4)">
+                確認
+            </button>
+
+        </div>
+
+        <div>
+            <div class="progress-container">
+
+                <div class="progress-label-row">
+                    <span>進度</span><span>75%</span>
+                </div>
+
+                <div class="progress-segments">
+                    <div class="segment active-seg"></div>
+                    <div class="segment active-seg"></div>
+                    <div class="segment active-seg"></div>
+                    <div class="segment"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Step 4：最終呈現 -->
+    <div id="screen-4" class="screen">
+
+        <h2>最終呈現</h2>
+
+        <div class="final-box">
+            <canvas
+                id="finalCanvas"
+                width="320"
+                height="320">
+            </canvas>
+        </div>
+
+        <div class="final-actions">
+
+            <button class="btn-back" onclick="nextScreen(3)">
+                返回
+            </button>
+
+            <button class="btn"
+                onclick="alert('已成功連動 Onshape 建模！')">
+                滿意 (Onshape)
+            </button>
+
+            <button
+                class="btn"
+                style="background-color:#ff6b6b;color:white;"
+                onclick="nextScreen(1)">
+                不滿意 (重來)
+            </button>
+
+        </div>
+
+        <div>
+            <div class="progress-container">
+
+                <div class="progress-label-row">
+                    <span>進度</span><span>100%</span>
+                </div>
+
+                <div class="progress-segments">
+                    <div class="segment active-seg"></div>
+                    <div class="segment active-seg"></div>
+                    <div class="segment active-seg"></div>
+                    <div class="segment active-seg"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* 儲存使用者設定 */
+let appData = {
+    type: 'hypo',
+    petals: 6
+};
+
+
+/* 切換畫面 */
+function nextScreen(screenIndex) {
+
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active');
+    });
+
+    document.getElementById(`screen-${screenIndex}`)
+        .classList.add('active');
+
+    if (screenIndex === 3) {
+        drawPreview();
+    }
+
+    if (screenIndex === 4) {
+        drawFinal();
+    }
+}
+
+
+/* 選擇內旋或外旋輪線 */
+function selectType(t, nextIdx) {
+
+    appData.type = t;
+
+    nextScreen(nextIdx);
+}
+
+
+/* 驗證花瓣數量 */
+function validateAndNext() {
+
+    const inputVal = parseInt(
+        document.getElementById('petalInput').value
+    );
+
+    const errorMsg = document.getElementById('errorMsg');
+
+    if (isNaN(inputVal) || inputVal < 1 || inputVal > 30) {
+
+        errorMsg.style.display = 'block';
+
+        return;
+    }
+
+    errorMsg.style.display = 'none';
+
+    appData.petals = inputVal;
+
+    nextScreen(3);
+}
+
+
+/* 繪製萬花尺 */
+function drawSpirograph(canvasId, isFull) {
+
+    const canvas = document.getElementById(canvasId);
+
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 花瓣數量
+    let N = appData.petals;
+
+    // 取得尖端圓弧程度
+    let shapeVal = parseFloat(
+        document.getElementById('shapeSlider').value
+    ) || 50;
+
+    // 0% 為尖端，100% 為圓弧
+    // 將程度轉換為筆距比例
+    let distanceRatio = 1 - 0.8 * (shapeVal / 100);
+
+    let R = 80;
+
+    let r = R / N;
+
+    let d = r * distanceRatio;
+
+    ctx.save();
+
+    ctx.translate(width / 2, height / 2);
+
+    ctx.strokeStyle = '#f4d06f';
+
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+
+    let maxT = isFull
+        ? Math.PI * 2 * N
+        : Math.PI * 2;
+
+    let steps = isFull ? 2000 : 300;
+
+
+    // 內旋輪線
+    if (appData.type === 'hypo') {
+
+        for (let i = 0; i <= steps; i++) {
+
+            let t = (i / steps) * maxT;
+
+            let x =
+                (R - r) * Math.cos(t)
+                + d * Math.cos((R - r) * t / r);
+
+            let y =
+                (R - r) * Math.sin(t)
+                - d * Math.sin((R - r) * t / r);
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+
+    }
+
+    // 外旋輪線
+    else {
+
+        for (let i = 0; i <= steps; i++) {
+
+            let t = (i / steps) * maxT;
+
+            let x =
+                (R + r) * Math.cos(t)
+                - d * Math.cos((R + r) * t / r);
+
+            let y =
+                (R + r) * Math.sin(t)
+                - d * Math.sin((R + r) * t / r);
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+
+    }
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+
+/* 即時預覽 */
+
+
+function drawPreview() {
+
+    const slider = document.getElementById('shapeSlider');
+    const value = Number(slider.value);
+
+    document.getElementById('shapeValue').textContent =
+        `目前程度：${value}%`;
+
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 使用內旋輪線形成單一尖端示意
+    const R = 100;
+    const r = 20;
+
+    // 0% = 尖端，100% = 圓弧
+    // d = r 時形成數學上的尖點
+    const d = r * (1 - 0.8 * value / 100);
+
+    const points = [];
+
+    // 只取尖點附近的一小段曲線
+    const range = 0.55;
+    const steps = 400;
+
+    for (let i = 0; i <= steps; i++) {
+
+        const t = -range + (2 * range * i / steps);
+
+        const x =
+            (R - r) * Math.cos(t)
+            + d * Math.cos((R - r) * t / r);
+
+        const y =
+            (R - r) * Math.sin(t)
+            - d * Math.sin((R - r) * t / r);
+
+        points.push({ x, y });
+    }
+
+    // 自動縮放，讓單一尖端完整呈現在畫面中
+    const minX = Math.min(...points.map(p => p.x));
+    const maxX = Math.max(...points.map(p => p.x));
+    const minY = Math.min(...points.map(p => p.y));
+    const maxY = Math.max(...points.map(p => p.y));
+
+    const spanX = Math.max(maxX - minX, 1);
+    const spanY = Math.max(maxY - minY, 1);
+
+    const scale = Math.min(
+        (width - 40) / spanX,
+        (height - 40) / spanY
+    );
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    ctx.strokeStyle = '#f4d06f';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+
+    points.forEach((p, i) => {
+
+        const px = width / 2 + (p.x - centerX) * scale;
+        const py = height / 2 - (p.y - centerY) * scale;
+
+        if (i === 0) {
+            ctx.moveTo(px, py);
+        } else {
+            ctx.lineTo(px, py);
+        }
+    });
+
+    ctx.stroke();
+}
+
+
+
+
+/* 最終呈現 */
+function drawFinal() {
+
+    drawSpirograph('finalCanvas', true);
+
+}
+
+
+/* 頁面載入後初始化預覽 */
+window.onload = function() {
+
+    drawPreview();
+
+};
+
+</script>
+
+</body>
+</html>
